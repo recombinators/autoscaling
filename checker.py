@@ -1,4 +1,4 @@
-  import os
+import os
 from sqs import (make_SQS_connection, get_queue, queue_size, )
 from cloudwatch import (make_CW_connection, update_metric, )
 from threading import Timer
