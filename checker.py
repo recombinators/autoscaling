@@ -39,7 +39,6 @@ def monitor_queue(SQSconn, CWconn, queue_name, metric_name):
     queue = get_queue(SQSconn, queue_name)
     size = queue_size(queue)
     update_metric(CWconn, NAMESPACE, metric_name, size)
-    print('{} messages'.format(size))
 
 
 # Create full queue size check timer funciton
