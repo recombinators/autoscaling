@@ -9,22 +9,26 @@ AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
 REGION = 'us-west-2'
 
 # Set queue name variables
-FULL_COMPOSITE_QUEUE = 'test_queue'
+FULL_COMPOSITE_QUEUE = 'snapsat_composite_queue'
 PREVIEW_COMPOSITE_QUEUE = 'snapsat_preview_queue'
 
 # Set metric name variables
-FULL_COMPOSITE_METRIC = 'number_jobs_composite_queue'
+FULL_COMPOSITE_METRIC = 'number_jobs_full_queue'
 PREVIEW_COMPOSITE_METRIC = 'number_jobs_preview_queue'
 
 # Set metric namespace
 NAMESPACE = 'Snapsat'
+
+# Set size check intervals
+FULL_INTERVAL = 5
+PREVIEW_INTERVAL = 5
 
 # Create SQS connction
 SQSconn = make_SQS_connection(REGION,
                               AWS_ACCESS_KEY_ID,
                               AWS_SECRET_ACCESS_KEY)
 
-# Creaet CW connection
+# Create CW connection
 CWconn = make_CW_connection(REGION,
                             AWS_ACCESS_KEY_ID,
                             AWS_SECRET_ACCESS_KEY)
@@ -38,30 +42,37 @@ def monitor_queue(SQSconn, CWconn, queue_name, metric_name):
     print('{} messages'.format(size))
 
 
-# Create queue size check timer funciton
-def queue_check_timer(SQSconn, CWconn, queue_name, metric_name, interval):
-    return Timer(interval, monitor_queue, args=[SQSconn,
-                                                CWconn,
-                                                queue_name,
-                                                metric_name])
+# Create full queue size check timer funciton
+def full_queue_timer(SQSconn, CWconn, queue_name, metric_name, interval):
+    monitor_queue(SQSconn, CWconn, queue_name, metric_name)
+    return Timer(interval,
+                 full_queue_timer,
+                 args=[SQSconn, CWconn, queue_name, metric_name, interval]
+                 ).start()
+
+
+# Create preview queue size check timer funciton
+def preview_queue_timer(SQSconn, CWconn, queue_name, metric_name, interval):
+    monitor_queue(SQSconn, CWconn, queue_name, metric_name)
+    return Timer(interval,
+                 full_queue_timer,
+                 args=[SQSconn, CWconn, queue_name, metric_name, interval]
+                 ).start()
 
 
 # Check queue sizes every 20 seconds
 def main():
-    full_timer = queue_check_timer(SQSconn,
-                                   CWconn,
-                                   FULL_COMPOSITE_QUEUE,
-                                   FULL_COMPOSITE_METRIC,
-                                   20)
+    full_queue_timer(SQSconn,
+                     CWconn,
+                     FULL_COMPOSITE_QUEUE,
+                     FULL_COMPOSITE_METRIC,
+                     FULL_INTERVAL)
 
-    preview_timer = queue_check_timer(SQSconn,
-                                      CWconn,
-                                      PREVIEW_COMPOSITE_QUEUE,
-                                      PREVIEW_COMPOSITE_METRIC,
-                                      20)
-
-    full_timer.start()
-    preview_timer.start()
+    preview_queue_timer(SQSconn,
+                        CWconn,
+                        PREVIEW_COMPOSITE_QUEUE,
+                        PREVIEW_COMPOSITE_METRIC,
+                        PREVIEW_INTERVAL)
 
 if __name__ == '__main__':
     main()
