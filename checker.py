@@ -9,7 +9,7 @@ AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
 REGION = 'us-west-2'
 
 # Set queue name variables
-FULL_COMPOSITE_QUEUE = 'snapsat_composite_queue'
+FULL_COMPOSITE_QUEUE = 'test_queue'
 PREVIEW_COMPOSITE_QUEUE = 'snapsat_preview_queue'
 
 # Set metric name variables
@@ -35,14 +35,15 @@ def monitor_queue(SQSconn, CWconn, queue_name, metric_name):
     queue = get_queue(SQSconn, queue_name)
     size = queue_size(queue)
     update_metric(CWconn, NAMESPACE, metric_name, size)
+    print('{} messages'.format(size))
 
 
 # Create queue size check timer funciton
 def queue_check_timer(SQSconn, CWconn, queue_name, metric_name, interval):
-    return Timer(interval, monitor_queue(SQSconn,
-                                         CWconn,
-                                         queue_name,
-                                         metric_name))
+    return Timer(interval, monitor_queue, args=[SQSconn,
+                                                CWconn,
+                                                queue_name,
+                                                metric_name])
 
 
 # Check queue sizes every 20 seconds
