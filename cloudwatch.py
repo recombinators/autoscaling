@@ -1,9 +1,9 @@
 from boto.ec2.cloudwatch import connect_to_region
 
 
-def make_cloudwatch_connection(region_name,
-                               aws_access_key_id,
-                               aws_secret_access_key):
+def make_CW_connection(region_name,
+                       aws_access_key_id,
+                       aws_secret_access_key):
     """
     Make a Cloudwatch connection to an AWS account. Pass in region, AWS access
     key id, and AWS secret access key

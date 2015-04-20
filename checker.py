@@ -1,7 +1,6 @@
 import os
-import boto.ec2.cloudwatch
 from sqs import (make_SQS_connection, get_queue, queue_size, )
-from cloudwatch import (make_cloudwatch_connection, update_metric, )
+from cloudwatch import (make_CW_connection, update_metric, )
 
 # Define AWS credentials
 AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
@@ -24,9 +23,13 @@ SQSconn = make_SQS_connection(REGION,
                               AWS_ACCESS_KEY_ID,
                               AWS_SECRET_ACCESS_KEY)
 
+# Creaet CW connection
+CWconn = make_CW_connection(REGION,
+                            AWS_ACCESS_KEY_ID,
+                            AWS_SECRET_ACCESS_KEY)
 
 # Monitor size of queue
-def monitor_queue(conn, queue_name, metric_name):
-    queue = get_queue(conn, queue_name)
+def monitor_queue(SQSconn, CWconn, queue_name, metric_name):
+    queue = get_queue(SQSconn, queue_name)
     size = queue_size(queue)
-    update_metric(conn, NAMESPACE, metric_name, size)
+    update_metric(CWconn, NAMESPACE, metric_name, size)
