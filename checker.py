@@ -1,6 +1,8 @@
 import os
 import boto.ec2.cloudwatch
 from sqs import (make_SQS_connection, get_queue, queue_size, )
+from cloudwatch import (make_cloudwatch_connection, update_metric, )
+
 # Define AWS credentials
 AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
 AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
@@ -12,7 +14,10 @@ PREVIEW_QUEUE = 'snapsat_preview_queue'
 
 # Set metric name variables
 COMPOSITE_QUEUE_METRIC = 'number_jobs_composite_queue'
-PRVIEW_QUEUE_METRIC = 'number_jobs_preview_queue'
+PREVIEW_QUEUE_METRIC = 'number_jobs_preview_queue'
+
+# Set metric namespace
+NAMESPACE = 'Snapsat'
 
 # Create SQS connction
 SQSconn = make_SQS_connection(REGION,
@@ -20,11 +25,8 @@ SQSconn = make_SQS_connection(REGION,
                               AWS_SECRET_ACCESS_KEY)
 
 
-# Publish metric
-def publish(metric_name):
-
-
-# Monitor full size composite queue
-def moniter_queue(conn, queue_name):
+# Monitor size of queue
+def monitor_queue(conn, queue_name, metric_name):
     queue = get_queue(conn, queue_name)
     size = queue_size(queue)
+    update_metric(conn, NAMESPACE, metric_name, size)
