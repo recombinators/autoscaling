@@ -20,8 +20,8 @@ PREVIEW_COMPOSITE_METRIC = 'number_jobs_preview_queue'
 NAMESPACE = 'Snapsat'
 
 # Set size check intervals
-FULL_INTERVAL = 5
-PREVIEW_INTERVAL = 5
+FULL_INTERVAL = 10
+PREVIEW_INTERVAL = 10
 
 # Create SQS connction
 SQSconn = make_SQS_connection(REGION,
